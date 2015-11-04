@@ -1,0 +1,66 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".CameraActivity" >
+
+    <FrameLayout
+        android:id="@+id/frameLayout1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" >
+
+        <com.android.preview.CameraSurfaceView
+            android:id="@+id/camera_surfaceview"
+            android:layout_width="0dip"
+            android:layout_height="0dip" />
+    </FrameLayout>
+
+    <ImageButton
+        android:id="@+id/btn_shutter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="10dip"
+        android:background="#00000000"
+        android:src="@drawable/btn_shutter_photo" />
+
+    <ImageView
+        android:id="@+id/imageView1"
+        android:layout_width="277dp"
+        android:layout_height="200dp"
+        android:layout_alignParentBottom="true"
+        android:layout_toLeftOf="@+id/btn_shutter"
+        android:layout_alignParentLeft="true"
+        android:background="#00000000" />
+
+    <Switch
+        android:id="@+id/switch1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:textOn="拍照"
+        android:textOff="录像"
+        android:checked="true"
+        android:text="模式" />
+
+
+    <TextView
+        android:id="@+id/timeTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        
+        android:layout_marginLeft="14dp"
+        android:text="TextView" />
+<!-- android:layout_below="@+id/frameLayout1" 加上这句因surface全屏，加的控件显示不出 -->
+    <ImageButton
+        android:id="@+id/imageButton1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="54dp"
+        android:background="#00000000"
+        android:src="@drawable/ic_switch_back" />
+
+</RelativeLayout>
