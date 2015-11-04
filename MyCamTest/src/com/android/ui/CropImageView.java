@@ -48,6 +48,7 @@ public class CropImageView extends View {
 	 protected final float maxZoomOut = 5.0f;
 	 protected final float minZoomIn = 0.333333f;
 	 private final int padding_num = 70;
+	 private final static int MIN_DISTANCE = 4;
 	 private boolean isMenuInfluence = false;
 	 
 	 private float[] mMatrixFloats = new float[] {  
@@ -155,6 +156,7 @@ public class CropImageView extends View {
 	  case MotionEvent.ACTION_UP:
 	   checkBounds();
 	   isFingerDown = false;
+	   offSetToCenter();
 	   invalidate();
 	   break;
 	   
@@ -230,7 +232,7 @@ public class CropImageView extends View {
 	 }
 
 	 private void resizeDrawable(float scale) {
-		 
+		 if(scale == 1f) return;
 	     int width = ((int)(mDrawableDst.width() * scale)-mDrawableDst.width())>>1;
 		 int height = ((int)(mDrawableDst.height() * scale)-mDrawableDst.height())>>1;
 		 mDrawableDst.set(mDrawableDst.left - width, mDrawableDst.top - height,
@@ -248,8 +250,9 @@ public class CropImageView extends View {
 	  */
 	 private float checkScale(float scale) {
 		 float scaleWidth = mDrawableDst.width()*scale;
-		 float scaleHeight = mDrawableDst.height()*scale;
-		 if(scaleWidth < mDrawableSrc.width()||scaleHeight < mDrawableSrc.height())
+//		 float scaleHeight = mDrawableDst.height()*scale;
+//		 if(scaleWidth <= mDrawableSrc.width()||scaleHeight <= mDrawableSrc.height())
+	     if(scaleWidth <= mDrawableSrc.width())
 			 return mDrawableSrc.width() / scaleWidth;
 		 if(scale>3f) scale = 2f;
 		 return scale;
@@ -342,15 +345,16 @@ public class CropImageView extends View {
 		  canvas.restore();
 		  // 绘制剪切框
 		  mFloatDrawable.draw(canvas);
+		  if(!isFingerDown)
 		  checkBounds();
 	  }
-	  
+	  if(!isFingerDown)
+		  offSetToCenter();
 	 }
 	 
 	 protected void configureBounds() {
 	  // configureBounds 初始化数据
 	  // isFirst 第一次进入，需要初始化
-	  // \u4e4b\u540e\u7684\u53d8\u5316\u662f\u6839\u636etouch\u4e8b\u4ef6\u6765\u53d8\u5316\u7684\uff0c\u800c\u4e0d\u662f\u6bcf\u6b21\u6267\u884c\u91cd\u65b0\u5bf9mDrawableSrc\u548cmDrawableFloat\u8fdb\u884c\u8bbe\u7f6e
 	  if (isFrist) {
 	   oriRationWH = ((float) mDrawable.getIntrinsicWidth())
 	     / ((float) mDrawable.getIntrinsicHeight());
@@ -358,7 +362,8 @@ public class CropImageView extends View {
 	   final float scale = mContext.getResources().getDisplayMetrics().density;
 //	   int w = Math.min(getWidth(), (int) (mDrawable.getIntrinsicWidth()
 //	     * scale + 0.5f));
-	   int h =  Math.min(getWidth(), (int) (mDrawable.getIntrinsicHeight()
+	   
+	   int h =  Math.min(getHeight(), (int) (mDrawable.getIntrinsicHeight()
 			     * scale + 0.5f));
 	   int w = (int) (h * oriRationWH);
 
@@ -516,4 +521,28 @@ public class CropImageView extends View {
 		this.mDrawableFloat.set(cropRect);
 		
 	}
+
+	public void setFitst(boolean isFirst) {
+		this.isFrist = isFirst;
+	}
+	
+	private void offSetToCenter() {
+		boolean isChange = false;
+		int middleX = getLeft() + (getWidth() >> 1);
+		int middleY = getTop() + (getHeight() >>1) ;
+	    int currentX = mDrawableDst.left + (mDrawableDst.width() >> 1);
+	    int currentY = mDrawableDst.top + (mDrawableDst.height() >> 1);
+	    int offSetX = Math.abs((middleX - currentX)/4) <= MIN_DISTANCE ? middleX - currentX:(middleX - currentX)/4;
+	    int offsetY = Math.abs((middleY - currentY)/4) <= MIN_DISTANCE ? middleY - currentY:(middleY - currentY)/4;
+	    isChange = (offSetX !=0||offsetY != 0);
+	    if(isChange) {
+	    	this.mDrawableDst.offset(offSetX, offsetY);
+	    	invalidate();
+	    }
+	    
+	    Log.d("zejia", "middleX="+middleX+" middleY="+middleY);
+	    Log.d("zejia", "currentX="+currentX+" currentY="+currentY);
+	    Log.d("zejia", "offSetX = "+offSetX+ " offSetY="+offsetY);
+	}
+	
 	}

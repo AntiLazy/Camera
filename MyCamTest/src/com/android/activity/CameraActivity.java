@@ -210,6 +210,16 @@ public class CameraActivity extends Activity implements OnClickListener,MediaRec
            if(this.cameraStatus == 1) parameters.setRecordingHint(true);
            
            if(parameters.isZoomSupported()) parameters.setZoom(0);
+           parameters.setPictureSize(1920, 1080);
+           
+           parameters.set("cap-mode", "normal");
+           parameters.set("cds-mode", "off");
+           parameters.set("cur-exposure-time", 100);
+           parameters.set("jpeg-quality:", 95);
+           parameters.set("snapshot-fd-data-enable", 0);
+           parameters.set("tintless","enable");
+           parameters.set("touch-af-aec", "touch-on");
+           
            
            //如果支持自动对焦，设置为自动连续对焦 
            List<String> focusModes = parameters.getSupportedFocusModes();

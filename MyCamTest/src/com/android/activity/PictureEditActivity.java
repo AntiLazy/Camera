@@ -35,11 +35,20 @@ import android.widget.Toast;
 
 public class PictureEditActivity extends Activity implements View.OnClickListener{
 	private CropImageView editView;
+	
+	
 	private HorizontalScrollView horizontalScrollView;
+	private View cutView;
+	private View customColorView;
+	
+	
 	private ImageButton editOKButton;
 	private ImageButton editColor;
 	private ImageButton editCrop;
 	private ImageButton editCustom;
+	
+	private ImageButton cropCancel;
+	private ImageButton cropCut;
 	
 	
 	private final static int STATUS_COLOR = 0;
@@ -48,7 +57,11 @@ public class PictureEditActivity extends Activity implements View.OnClickListene
 	
 	private int mStatus = 0;
 	/**
-	 * 原编辑的bitmap
+	 * 原始图片
+	 */
+	private Bitmap orignalBitmap;
+	/**
+	 * 原编辑的bitmap，可能是原始图片，也可能是剪切后的原图片
 	 */
 	private Bitmap editBitmap;
 	/**
@@ -87,9 +100,15 @@ public class PictureEditActivity extends Activity implements View.OnClickListene
 		this.editView.setCropEnable(false);
 		this.editView.setDrawable(new BitmapDrawable(getResources(),picturePath),0,0);
 		//获取编辑的图片位图
-		this.editBitmap = BitmapFactory.decodeFile(picturePath);
+		this.orignalBitmap = BitmapFactory.decodeFile(picturePath);
+		this.editBitmap = this.orignalBitmap;
 		
 		this.horizontalScrollView = (HorizontalScrollView)findViewById(R.id.horizontalScrollView1);
+		this.cutView = findViewById(R.id.layout_crop);
+		this.customColorView = findViewById(R.id.layout_custom);
+		
+		
+		
 		LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.HORIZONTAL);
         this.editBitmapMirror = Bitmap.createScaledBitmap(editBitmap, MIRROR_WIDTH, MIRROR_HEIGHT, false);
@@ -129,6 +148,10 @@ public class PictureEditActivity extends Activity implements View.OnClickListene
         this.editCrop.setOnClickListener(this);
         this.editCustom = (ImageButton)findViewById(R.id.edit_custom);
         this.editCustom.setOnClickListener(this);
+		this.cropCancel = (ImageButton)this.findViewById(R.id.crop_cancel);
+		this.cropCancel.setOnClickListener(this);
+		this.cropCut = (ImageButton)this.findViewById(R.id.crop_cut);
+		this.cropCut.setOnClickListener(this);
         
 	}
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -153,24 +176,49 @@ public class PictureEditActivity extends Activity implements View.OnClickListene
 			if(mStatus == STATUS_COLOR) return;
 			
 			if(mStatus == STATUS_CROP) {
-				this.horizontalScrollView.setVisibility(View.VISIBLE);
 				this.editView.setCropEnable(false);
+				this.cutView.setVisibility(View.GONE);
+			} else {
+				this.customColorView.setVisibility(View.GONE);
 			}
-			
+			this.horizontalScrollView.setVisibility(View.VISIBLE);
 			mStatus = STATUS_COLOR;
 		}
 		if(v == editCrop) {
 			if(mStatus == STATUS_CROP) return;
 			this.editView.setCropEnable(true);
-			this.horizontalScrollView.setVisibility(View.INVISIBLE);
 			
+			if(mStatus == STATUS_COLOR) {
+				this.horizontalScrollView.setVisibility(View.GONE);
+			} else {
+				this.customColorView.setVisibility(View.GONE);
+			}
+			this.cutView.setVisibility(View.VISIBLE);
 			mStatus = STATUS_CROP;
 		}
 		if(v == editCustom) {
 			if(mStatus == STATUS_CUSTOM) return;
-			
-			this.horizontalScrollView.setVisibility(View.GONE);
-			findViewById(R.id.layout_custom).setVisibility(View.VISIBLE);
+			if(mStatus == STATUS_COLOR) {
+				this.horizontalScrollView.setVisibility(View.GONE);
+			} else {
+				this.editView.setCropEnable(false);
+				this.cutView.setVisibility(View.GONE);
+			}
+			this.customColorView.setVisibility(View.VISIBLE);
+			mStatus = STATUS_CUSTOM;
+		}
+		if(v == cropCancel) {
+			this.editBitmap = this.orignalBitmap;
+			this.currentBitmap = this.editBitmap;
+			this.editView.setFitst(true);
+			this.editView.setDrawable(new BitmapDrawable(currentBitmap), 0, 0);
+		}
+		if(v == cropCut) {
+			Bitmap cropBitmap = this.editView.getCropImage();
+			this.editBitmap = cropBitmap;
+			this.currentBitmap = cropBitmap;
+			this.editView.setFitst(true);
+			this.editView.setDrawable(new BitmapDrawable(cropBitmap), 0, 0);
 		}
 	}
 }
