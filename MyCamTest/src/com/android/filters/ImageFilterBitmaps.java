@@ -24,7 +24,7 @@ public class ImageFilterBitmaps {
 	 */
 	public void init() {
 		
-		colorMatrixList.add(null);
+		colorMatrixList.add(getOrignalColorMatrix());
 		colorMatrixList.add(getGrayColorMatrix());
 		colorMatrixList.add(getHighSaturatedColorMatrix());
 		colorMatrixList.add(getOldColorMatrix());
@@ -88,6 +88,15 @@ public class ImageFilterBitmaps {
 		         0, 0, 0, 1, 0  
 			};
 		return mMatrixFloats;
+	}
+	
+	public static float[] getOrignalColorMatrix() {
+		return new float[] {
+				1,0,0,0,0,
+				0,1,0,0,0,
+				0,0,1,0,0,
+				0,0,0,1,0
+		};
 	}
 	/**
 	 * 怀旧矩阵

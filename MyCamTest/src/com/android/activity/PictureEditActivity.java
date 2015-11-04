@@ -22,6 +22,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MotionEvent;
@@ -31,9 +32,11 @@ import android.widget.HorizontalScrollView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.SeekBar;
+import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.Toast;
 
-public class PictureEditActivity extends Activity implements View.OnClickListener{
+public class PictureEditActivity extends Activity implements View.OnClickListener,OnSeekBarChangeListener{
 	private CropImageView editView;
 	
 	
@@ -41,6 +44,7 @@ public class PictureEditActivity extends Activity implements View.OnClickListene
 	private View cutView;
 	private View customColorView;
 	
+	float[] matrix;
 	
 	private ImageButton editOKButton;
 	private ImageButton editColor;
@@ -49,6 +53,12 @@ public class PictureEditActivity extends Activity implements View.OnClickListene
 	
 	private ImageButton cropCancel;
 	private ImageButton cropCut;
+	
+	private SeekBar seekBarRed;
+	private SeekBar seekBarGreen;
+	private SeekBar seekBarBlue;
+	private SeekBar seekBarAlpha;
+	private static final int SEEKBAR_MAX = 510;
 	
 	
 	private final static int STATUS_COLOR = 0;
@@ -68,8 +78,12 @@ public class PictureEditActivity extends Activity implements View.OnClickListene
 	 * 编辑过的bitmap
 	 */
 	private Bitmap currentBitmap;
-	
+	/**
+	 * 颜色矩阵
+	 */
 	private ArrayList<float[]> matrixList;
+	
+	private int currentMatrixIndex = 0;
 	/**
 	 * 编辑的bitmap的镜像，为指定尺寸的editBitmap
 	 */
@@ -85,7 +99,7 @@ public class PictureEditActivity extends Activity implements View.OnClickListene
 	 */
 	private ArrayList<String> pictureList;
 	
-	
+	LinearLayout layout;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		// TODO Auto-generated method stub
@@ -109,7 +123,7 @@ public class PictureEditActivity extends Activity implements View.OnClickListene
 		
 		
 		
-		LinearLayout layout = new LinearLayout(this);
+		 layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.HORIZONTAL);
         this.editBitmapMirror = Bitmap.createScaledBitmap(editBitmap, MIRROR_WIDTH, MIRROR_HEIGHT, false);
         
@@ -129,9 +143,10 @@ public class PictureEditActivity extends Activity implements View.OnClickListene
 				
 				@Override
 				public void onClick(View v) {
+					if(currentMatrixIndex == index) return;
 					currentBitmap = ImageFilterBitmaps.translateBitmap(matrixList.get(index), editBitmap);
-					editView.setmDrawable(new BitmapDrawable(currentBitmap));
-					
+					editView.setmDrawable(new BitmapDrawable(PictureEditActivity.this.getResources(),currentBitmap));
+					currentMatrixIndex = index;
 				}
 			});
         	
@@ -140,6 +155,12 @@ public class PictureEditActivity extends Activity implements View.OnClickListene
         }
         horizontalScrollView.addView(layout);
         
+        initViews();
+
+        
+	}
+	
+	private void initViews() {
         this.editOKButton = (ImageButton)findViewById(R.id.edit_ok);
         this.editOKButton.setOnClickListener(this);
         this.editColor = (ImageButton)findViewById(R.id.edit_color);
@@ -152,8 +173,30 @@ public class PictureEditActivity extends Activity implements View.OnClickListene
 		this.cropCancel.setOnClickListener(this);
 		this.cropCut = (ImageButton)this.findViewById(R.id.crop_cut);
 		this.cropCut.setOnClickListener(this);
-        
+		
+		initSeekBar(SEEKBAR_MAX);
+		
 	}
+	private void initSeekBar(int max) {
+		this.seekBarRed = (SeekBar)findViewById(R.id.seekBar_red);
+		this.seekBarRed.setOnSeekBarChangeListener(this);
+		this.seekBarGreen = (SeekBar)findViewById(R.id.seekBar_green);
+		this.seekBarGreen.setOnSeekBarChangeListener(this);
+		this.seekBarBlue = (SeekBar)findViewById(R.id.seekBar_blue);
+		this.seekBarBlue.setOnSeekBarChangeListener(this);
+		this.seekBarAlpha = (SeekBar)findViewById(R.id.seekBar_alpha);
+		this.seekBarAlpha.setOnSeekBarChangeListener(this);
+		this.seekBarRed.setMax(max);
+		this.seekBarGreen.setMax(max);
+		this.seekBarBlue.setMax(max);
+		this.seekBarAlpha.setMax(200);
+		int initNum = max >> 1;
+        this.seekBarRed.setProgress(initNum);
+        this.seekBarBlue.setProgress(initNum);
+        this.seekBarGreen.setProgress(initNum);
+        this.seekBarAlpha.setProgress(100);
+	}
+	
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.main, menu);
@@ -211,14 +254,36 @@ public class PictureEditActivity extends Activity implements View.OnClickListene
 			this.editBitmap = this.orignalBitmap;
 			this.currentBitmap = this.editBitmap;
 			this.editView.setFitst(true);
-			this.editView.setDrawable(new BitmapDrawable(currentBitmap), 0, 0);
+			this.editView.setDrawable(new BitmapDrawable(this.getResources(),currentBitmap), 0, 0);
 		}
 		if(v == cropCut) {
 			Bitmap cropBitmap = this.editView.getCropImage();
 			this.editBitmap = cropBitmap;
 			this.currentBitmap = cropBitmap;
 			this.editView.setFitst(true);
-			this.editView.setDrawable(new BitmapDrawable(cropBitmap), 0, 0);
+			this.editView.setDrawable(new BitmapDrawable(this.getResources(),cropBitmap), 0, 0);
 		}
+	}
+	
+	@Override
+	public void onProgressChanged(SeekBar seekBar, int progress,
+			boolean fromUser) {
+		 matrix = matrixList.get(currentMatrixIndex);
+		if(seekBar == seekBarRed) matrix[4] = progress - 255;
+		else if(seekBar == seekBarGreen) matrix[9] = progress - 255;
+		else if(seekBar == seekBarBlue) matrix[14] = progress - 255;
+		else matrix[19] = progress - 100;
+		Log.d("yejia", "progress = "+progress);
+	}
+	@Override
+	public void onStartTrackingTouch(SeekBar seekBar) {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void onStopTrackingTouch(SeekBar seekBar) {
+		// TODO Auto-generated method stub
+		currentBitmap = ImageFilterBitmaps.translateBitmap(matrix, editBitmap);
+		editView.setmDrawable(new BitmapDrawable(this.getResources(),ImageFilterBitmaps.translateBitmap(matrix, editBitmap)));
 	}
 }
