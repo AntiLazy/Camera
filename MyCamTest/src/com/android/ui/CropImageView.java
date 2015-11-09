@@ -156,6 +156,7 @@ public class CropImageView extends View {
 	  case MotionEvent.ACTION_UP:
 	   checkBounds();
 	   isFingerDown = false;
+	   //checkDrawableBounds();
 	   offSetToCenter();
 	   invalidate();
 	   break;
@@ -350,6 +351,7 @@ public class CropImageView extends View {
 	  }
 	  if(!isFingerDown)
 		  offSetToCenter();
+	  	 // checkDrawableBounds();
 	 }
 	 
 	 protected void configureBounds() {
@@ -468,6 +470,7 @@ public class CropImageView extends View {
 	  }
 	 }
 
+	 
 	 public Bitmap getCropImage() {
 	  Bitmap tmpBitmap = Bitmap.createBitmap(getWidth(), getHeight(),
 	    Config.RGB_565);
@@ -477,7 +480,7 @@ public class CropImageView extends View {
 	  float scale = (float) (mDrawableSrc.width())
 	    / (float) (mDrawableDst.width());
 	  matrix.postScale(scale, scale);
-
+	  Log.d("yejia", "y="+mDrawableFloat.top+" height="+mDrawableFloat.height()+" bitmap.height="+tmpBitmap.getHeight());
 	  Bitmap ret = Bitmap.createBitmap(tmpBitmap, mDrawableFloat.left,
 	    mDrawableFloat.top, mDrawableFloat.width(),
 	    mDrawableFloat.height(), matrix, true);
@@ -528,21 +531,40 @@ public class CropImageView extends View {
 	
 	private void offSetToCenter() {
 		boolean isChange = false;
+		Log.d("yejia", "offSetToCenter() is working.");
+		int offSetX = Integer.MIN_VALUE;
+		int offSetY = Integer.MIN_VALUE;
+		
+		if(mDrawableDst.width() > getWidth()) {
+			 if(mDrawableDst.left > 0) offSetX = (-mDrawableDst.left/4);
+			 else if(mDrawableDst.right < getWidth()) offSetX = (getWidth() - mDrawableDst.right)/4;
+			 else offSetX = 0;
+		 }
+		
+		if(mDrawableDst.height() > getHeight()) {
+			if(mDrawableDst.top > 0) offSetY = (-mDrawableDst.top/4) >= MIN_DISTANCE ? -mDrawableDst.top:(-mDrawableDst.top/4);
+			else if(mDrawableDst.bottom < getHeight()) offSetY = (getHeight() - mDrawableDst.bottom)/4 <=MIN_DISTANCE ? getHeight() - mDrawableDst.bottom:(getHeight() - mDrawableDst.bottom)/4;
+			else offSetY = 0;
+		}
+		
+		
 		int middleX = getLeft() + (getWidth() >> 1);
 		int middleY = getTop() + (getHeight() >>1) ;
 	    int currentX = mDrawableDst.left + (mDrawableDst.width() >> 1);
 	    int currentY = mDrawableDst.top + (mDrawableDst.height() >> 1);
-	    int offSetX = Math.abs((middleX - currentX)/4) <= MIN_DISTANCE ? middleX - currentX:(middleX - currentX)/4;
-	    int offsetY = Math.abs((middleY - currentY)/4) <= MIN_DISTANCE ? middleY - currentY:(middleY - currentY)/4;
-	    isChange = (offSetX !=0||offsetY != 0);
+	    if(offSetX == Integer.MIN_VALUE) {
+	    	//offSetX = Math.abs((middleX - currentX)/4) <= MIN_DISTANCE ? middleX - currentX:(middleX - currentX)/4;
+	    	offSetX = (middleX - currentX)/4;
+	    }
+	    if(offSetY == Integer.MIN_VALUE) {
+//	    	offSetY = Math.abs((middleY - currentY)/4) <= MIN_DISTANCE ? middleY - currentY:(middleY - currentY)/4;
+	    	offSetY = (middleY - currentY)/4;
+	    }
+	    isChange = (offSetX !=0||offSetY != 0);
 	    if(isChange) {
-	    	this.mDrawableDst.offset(offSetX, offsetY);
+	    	this.mDrawableDst.offset(offSetX, offSetY);
 	    	invalidate();
 	    }
-	    
-	    Log.d("zejia", "middleX="+middleX+" middleY="+middleY);
-	    Log.d("zejia", "currentX="+currentX+" currentY="+currentY);
-	    Log.d("zejia", "offSetX = "+offSetX+ " offSetY="+offsetY);
 	}
 	
 	}
